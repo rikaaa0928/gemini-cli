@@ -33,6 +33,17 @@ The OAuth client is invoked transparently by the application whenever access to 
 *   If the access token is expired, the library uses the refresh token to obtain a new access token without requiring user intervention.
 *   The `getOauthClient` function ensures that an authenticated and ready-to-use client is returned, either from the cache or after completing a new authentication flow.
 
+### Accessing the Gemini Model with OAuth
+
+When the application needs to interact with the Gemini model, it uses the authenticated `OAuth2Client` to make secure API calls. Here are the specifics:
+
+*   **How the model is accessed:** The `CodeAssistServer` class (in `packages/core/src/code_assist/server.ts`) is responsible for all communication with the backend. Methods like `generateContent` and `generateContentStream` send the actual requests to the Gemini model.
+*   **Which token is used:** The `OAuth2Client` instance, provided by the `google-auth-library`, automatically handles authentication. It uses the **OAuth access token** obtained during the login flow. This token represents the user's delegated permission for the application to access the API on their behalf.
+*   **Endpoint:** The base API endpoint is defined as `https://cloudcode-pa.googleapis.com`. The full request URL is constructed dynamically, for example: `https://cloudcode-pa.googleapis.com/v1internal:generateContent`.
+*   **Token Transmission:** The `google-auth-library` automatically attaches the access token to each outgoing request by adding an `Authorization` header in the format: `Authorization: Bearer <access_token>`.
+
+This is fundamentally different from a direct API token scenario. With OAuth, the token is short-lived and automatically refreshed, representing a user's permission. A direct API token is typically static, long-lived, and represents the identity of the application itself.
+
 ## 3. API Token Login Flow
 
 API token login is used for direct service-to-service authentication, where the application authenticates on its own behalf, not on behalf of a user.
@@ -118,6 +129,17 @@ OAuth 客户端在 `packages/core/src/code_assist/oauth2.ts` 文件中实现，�
 
 *   如果访问令牌过期，该库会使用刷新令牌获取新的访问令牌，无需用户干预。
 *   `getOauthClient` 函数确保返回一个经过身份验证且随时可用的客户端，无论是从缓存中获取还是在完成新的认证流程后。
+
+### 使用 OAuth 访问 Gemini 模型
+
+当应用程序需要与 Gemini 模型交互时，它会使用经过身份验证的 `OAuth2Client` 来进行安全的 API 调用。具体细节如下：
+
+*   **如何访问模型**：`CodeAssistServer` 类（位于 `packages/core/src/code_assist/server.ts`）负责与后端的所有通信。`generateContent` 和 `generateContentStream` 等方法会向 Gemini 模型发送实际请求。
+*   **使用哪个令牌**：由 `google-auth-library` 提供的 `OAuth2Client` 实例会自动处理身份验证。它使用的是在登录流程中获得的 **OAuth 访问令牌**。此令牌代表用户授权应用程序代表他们访问 API 的权限。
+*   **端点 (Endpoint)**：基础 API 端点定义为 `https://cloudcode-pa.googleapis.com`。完整的请求 URL 是动态构建的，例如：`https://cloudcode-pa.googleapis.com/v1internal:generateContent`。
+*   **令牌传输方式**：`google-auth-library` 通过添加一个 `Authorization` 标头，自动将访问令牌附加到每个传出请求中，格式为：`Authorization: Bearer <access_token>`。
+
+这与直接使用 API 令牌的场景有根本的不同。使用 OAuth 时，令牌是短暂的，并且会自动刷新，代表用户的权限。而直接的 API 令牌通常是静态的、长期的，代表应用程序自身的身份。
 
 ## 3. API令牌登录流程
 
